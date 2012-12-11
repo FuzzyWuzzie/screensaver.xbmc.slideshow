@@ -1,5 +1,5 @@
 v0.0.3
-- make all sources browsable for picture folder
+- add multipath support
 
 v0.0.2
 - added fanart image
