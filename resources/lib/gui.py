@@ -13,13 +13,9 @@
 # *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 # *  http://www.gnu.org/copyleft/gpl.html
 
-# TODO conditional rotate based on exif info
-
 import os, sys, random, urllib
 import xbmc, xbmcgui, xbmcaddon, xbmcvfs
 from xml.dom.minidom import parse
-from PIL import Image
-from PIL.ExifTags import TAGS
 if sys.version_info < (2, 7):
     import simplejson
 else:
@@ -33,10 +29,6 @@ __skinhome__ = xbmc.translatePath( os.path.join( 'special://home/addons/', __ski
 __skinxbmc__ = xbmc.translatePath( os.path.join( 'special://xbmc/addons/', __skindir__, 'addon.xml' ).encode("utf-8") ).decode("utf-8")
 
 IMAGE_TYPES = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.ico', '.tif', '.tiff', '.tga', '.pcx')
-
-EXIF_TYPES = ('.jpg', '.jpeg', '.tif', '.tiff')
-
-ANGLE = {'1': '0', '2': '0', '3': '180', '4': '0', '5': '0', '6': '90', '7': '0', '8': '270'}
 
 EFFECTLIST = ["('effect=zoom start=100 end=400 center=auto time=%i condition=true', 'conditional'),",
              "('effect=slide start=1280,0 end=-1280,0 time=%i condition=true', 'conditional'), ('effect=zoom start=%i end=%i center=auto time=%i condition=true', 'conditional')",
@@ -134,10 +126,6 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                     elif self.slideshow_name == '2':
                         ROOT, NAME = os.path.split(os.path.dirname(img))
                     self.namelabel.setLabel(NAME)
-#                # check if we need to rotate the image (ONLY WORKS FOR LOCAL FILES)
-#                orientation = 0
-#                if os.path.splitext(img)[1].lower() in EXIF_TYPES:
-#                    orientation = ANGLE[self._get_exif(img)]
                 # set animations
                 if self.slideshow_effect == "0":
                     # add slide anim
@@ -169,9 +157,10 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                     break
 
     def _get_items(self):
-	# image folder (fallback to video fanart if path is empty)
+	# check if we have an image folder, else fallback to video fanart
         if self.slideshow_type == "2":
-            if not self.slideshow_path:
+            items = self._walk(self.slideshow_path)
+            if not items:
                 self.slideshow_type = "0"
 	# video fanart
         if self.slideshow_type == "0":
@@ -179,10 +168,8 @@ class Screensaver(xbmcgui.WindowXMLDialog):
 	# music fanart
         elif self.slideshow_type == "1":
             methods = [('AudioLibrary.GetArtists', 'artists')]
-        # picture source
-        if self.slideshow_type == "2":
-            items = self._walk(self.slideshow_path)
-        else:
+        # query the db
+        if not self.slideshow_type == "2":
             items = []
             for method in methods:
                 json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "' + method[0] + '", "params": {"properties": ["fanart"]}, "id": 1}')
