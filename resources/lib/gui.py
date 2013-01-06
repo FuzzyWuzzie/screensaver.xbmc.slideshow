@@ -125,7 +125,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                         NAME, EXT = os.path.splitext(os.path.basename(img))
                     elif self.slideshow_name == '2':
                         ROOT, NAME = os.path.split(os.path.dirname(img))
-                    self.namelabel.setLabel(NAME)
+                    self.namelabel.setLabel('[B]' + NAME + '[/B]')
                 # set animations
                 if self.slideshow_effect == "0":
                     # add slide anim
