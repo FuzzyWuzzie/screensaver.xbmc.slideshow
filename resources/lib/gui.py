@@ -20,6 +20,7 @@ if sys.version_info < (2, 7):
     import simplejson
 else:
     import json as simplejson
+import EXIF
 
 __addon__    = sys.modules[ "__main__" ].__addon__
 __addonid__  = sys.modules[ "__main__" ].__addonid__
@@ -112,6 +113,8 @@ class Screensaver(xbmcgui.WindowXMLDialog):
         while (not xbmc.abortRequested) and (not self.stop):
             # iterate through all the images
             for img in items:
+                imgfile = xbmcvfs.File(img)
+                tags = EXIF.process_file(imgfile)
                 # add image to gui
                 cur_img.setImage(img)
                 # give xbmc some time to load the image
