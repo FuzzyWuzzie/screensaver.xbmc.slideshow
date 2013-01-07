@@ -1,5 +1,5 @@
 import sys
-import xbmc, xbmcaddon
+import xbmcaddon
 
 __addon__    = xbmcaddon.Addon()
 __addonid__  = __addon__.getAddonInfo('id')
