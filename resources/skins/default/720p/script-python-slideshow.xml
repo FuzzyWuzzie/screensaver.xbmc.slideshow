@@ -91,6 +91,19 @@
 				<height>20</height>
 				<font>font13</font>
 				<align>right</align>
+				<textcolor>F0FFFFFF</textcolor>
+				<shadowcolor>F0000000</shadowcolor>
+				<animation type="Conditional" condition="Control.IsVisible(100)" reversible="false">
+					<effect type="slide" start="0,0" end="0,-95" time="0"/>
+				</animation>
+			</control>
+			<control type="textbox" id="100">
+				<posx>50</posx>
+				<posy>610</posy>
+				<width>1200</width>
+				<height>100</height>
+				<font>font13</font>
+				<align>right</align>
 				<textcolor>C0FFFFFF</textcolor>
 				<shadowcolor>C0000000</shadowcolor>
 			</control>

@@ -13,23 +13,23 @@
 # *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 # *  http://www.gnu.org/copyleft/gpl.html
 
-import os, sys, random, urllib
+import os, sys, random, urllib, pyexiv2
 import xbmc, xbmcgui, xbmcaddon, xbmcvfs
 from xml.dom.minidom import parse
 if sys.version_info < (2, 7):
     import simplejson
 else:
     import json as simplejson
-import EXIF
 
 __addon__    = sys.modules[ "__main__" ].__addon__
 __addonid__  = sys.modules[ "__main__" ].__addonid__
 __cwd__      = sys.modules[ "__main__" ].__cwd__
-__skindir__  = xbmc.getSkinDir().decode("utf-8")
-__skinhome__ = xbmc.translatePath( os.path.join( 'special://home/addons/', __skindir__, 'addon.xml' ).encode("utf-8") ).decode("utf-8")
-__skinxbmc__ = xbmc.translatePath( os.path.join( 'special://xbmc/addons/', __skindir__, 'addon.xml' ).encode("utf-8") ).decode("utf-8")
+__skindir__  = xbmc.getSkinDir().decode('utf-8')
+__skinhome__ = xbmc.translatePath( os.path.join( 'special://home/addons/', __skindir__, 'addon.xml' ).encode('utf-8') ).decode('utf-8')
+__skinxbmc__ = xbmc.translatePath( os.path.join( 'special://xbmc/addons/', __skindir__, 'addon.xml' ).encode('utf-8') ).decode('utf-8')
 
-IMAGE_TYPES = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.ico', '.tif', '.tiff', '.tga', '.pcx')
+IMAGE_TYPES = ('.jpg', '.jpeg', '.png', '.tif', '.tiff', '.gif', '.pcx', '.bmp', '.tga', '.ico')
+EXIF_TYPES  = ('.jpg', '.jpeg', '.tif', '.tiff')
 
 EFFECTLIST = ["('effect=zoom start=100 end=400 center=auto time=%i condition=true', 'conditional'),",
              "('effect=slide start=1280,0 end=-1280,0 time=%i condition=true', 'conditional'), ('effect=zoom start=%i end=%i center=auto time=%i condition=true', 'conditional')",
@@ -43,9 +43,12 @@ EFFECTLIST = ["('effect=zoom start=100 end=400 center=auto time=%i condition=tru
 
 def log(txt):
     if isinstance (txt,str):
-        txt = txt.decode("utf-8")
+        txt = txt.decode('utf-8')
     message = u'%s: %s' % (__addonid__, txt)
-    xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
+    xbmc.log(msg=message.encode('utf-8'), level=xbmc.LOGDEBUG)
+
+def localize(num):
+    return __addon__.getLocalizedString(num).encode('utf-8')
 
 class Screensaver(xbmcgui.WindowXMLDialog):
     def __init__( self, *args, **kwargs ):
@@ -98,10 +101,15 @@ class Screensaver(xbmcgui.WindowXMLDialog):
             self.getControl(1).setVisible(False)
             self.getControl(2).setVisible(False)
         self.slideshow_name = __addon__.getSetting('label')
+        self.slideshow_exif = __addon__.getSetting('exif')
         if self.slideshow_name == '0':
             self.getControl(99).setVisible(False)
         else:
             self.namelabel = self.getControl(99)
+        if self.slideshow_exif == 'false':
+            self.getControl(100).setVisible(False)
+        else:
+            self.textbox = self.getControl(100)
         # set the dim property
         self._set_prop('Dim', self.slideshow_dim)
 
@@ -113,8 +121,6 @@ class Screensaver(xbmcgui.WindowXMLDialog):
         while (not xbmc.abortRequested) and (not self.stop):
             # iterate through all the images
             for img in items:
-                imgfile = xbmcvfs.File(img)
-                tags = EXIF.process_file(imgfile)
                 # add image to gui
                 cur_img.setImage(img)
                 # give xbmc some time to load the image
@@ -122,6 +128,28 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                     xbmc.sleep(1000)
                 else:
                     self.startup = False
+                # get exif tags if enabled in settings and we have an image that can contain exif data
+                exif = False
+                if (self.slideshow_exif == 'true') and (os.path.splitext(img)[1].lower() in EXIF_TYPES):
+                     try:
+                         imgfile = xbmcvfs.File(img)
+                         # max exif size is 64k and is located at the beginning of the image
+                         imgdata = imgfile.read(64000)
+                         imgfile.close()
+                         # read tags
+                         metadata = pyexiv2.ImageMetadata.from_buffer(imgdata)
+                         metadata.read()
+                         date = metadata['Exif.Photo.DateTimeOriginal'].raw_value
+                         title = metadata['Iptc.Application2.Headline'].raw_value[0]
+                         description = metadata['Iptc.Application2.Caption'].raw_value[0]
+                         keywords = ', '.join(metadata['Iptc.Application2.Keywords'].raw_value)
+                         self.textbox.setText('[B]' + localize(30017) + '[/B]' + date + '[CR]' + '[B]' + localize(30018) + '[/B]' + title + '[CR]' + '[B]' + localize(30019) + '[/B]' + description + '[CR]' + '[B]' + localize(30020) + '[/B]' + keywords)
+                         self.textbox.setVisible(True)
+                         exif = True
+                     except:
+                         pass
+                if not exif:
+                    self.textbox.setVisible(False)
                 # get the file or foldername if enabled in settings
                 if self.slideshow_name != '0':
                     if self.slideshow_name == '1':
@@ -209,21 +237,6 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                     # recursively scan all subfolders
                     images += self._walk(os.path.join(folder,item))
         return images
-
-    def _get_exif(self, img):
-        # extract exif data from image file and find the orientation tag value
-        angle = '1'
-        try:
-            data = Image.open(img, 'r')
-            info = data._getexif()
-            if info:
-                for tag, value in info.items():
-                    key = TAGS.get(tag, tag)
-                    if key == 'Orientation':
-                        angle = str(value)
-        except:
-            pass
-        return angle
 
     def _anim(self, cur_img):
         # reset position the current image

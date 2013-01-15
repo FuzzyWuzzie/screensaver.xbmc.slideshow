@@ -8,4 +8,5 @@
   <setting type="sep"/>
   <setting label="30011" type="bool" id="scale" default="false"/>
   <setting label="30012" type="enum" id="label" default="0" lvalues="30013|30014|30015"/>
+  <setting label="30016" type="bool" id="exif" default="false"/>
 </settings>
