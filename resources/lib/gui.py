@@ -134,18 +134,37 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                      try:
                          imgfile = xbmcvfs.File(img)
                          # max exif size is 64k and is located at the beginning of the image
-                         imgdata = imgfile.read(64000)
+                         imgdata = imgfile.read(70000)
                          imgfile.close()
                          # read tags
                          metadata = pyexiv2.ImageMetadata.from_buffer(imgdata)
                          metadata.read()
-                         date = metadata['Exif.Photo.DateTimeOriginal'].raw_value
-                         title = metadata['Iptc.Application2.Headline'].raw_value[0]
-                         description = metadata['Iptc.Application2.Caption'].raw_value[0]
-                         keywords = ', '.join(metadata['Iptc.Application2.Keywords'].raw_value)
-                         self.textbox.setText('[B]' + localize(30017) + '[/B]' + date + '[CR]' + '[B]' + localize(30018) + '[/B]' + title + '[CR]' + '[B]' + localize(30019) + '[/B]' + description + '[CR]' + '[B]' + localize(30020) + '[/B]' + keywords)
-                         self.textbox.setVisible(True)
-                         exif = True
+                         try:
+                             date = metadata['Exif.Photo.DateTimeOriginal'].raw_value
+                             if date == '0000:00:00 00:00:00':
+                                 date = ''
+                             else:
+                                 exif = True
+                         except:
+                             date = ''
+                         try:
+                             title = metadata['Iptc.Application2.Headline'].raw_value[0]
+                             exif = True
+                         except:
+                             title = ''
+                         try:
+                             description = metadata['Iptc.Application2.Caption'].raw_value[0]
+                             exif = True
+                         except:
+                             description = ''
+                         try:
+                             keywords = ', '.join(metadata['Iptc.Application2.Keywords'].raw_value)
+                             exif = True
+                         except:
+                             keywords = ''
+                         if exif:
+                             self.textbox.setText('[B]' + localize(30017) + '[/B]' + date + '[CR]' + '[B]' + localize(30018) + '[/B]' + title + '[CR]' + '[B]' + localize(30019) + '[/B]' + description + '[CR]' + '[B]' + localize(30020) + '[/B]' + keywords)
+                             self.textbox.setVisible(True)
                      except:
                          pass
                 if not exif:
