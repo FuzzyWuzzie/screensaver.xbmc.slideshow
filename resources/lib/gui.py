@@ -101,15 +101,15 @@ class Screensaver(xbmcgui.WindowXMLDialog):
             self.getControl(1).setVisible(False)
             self.getControl(2).setVisible(False)
         self.slideshow_name = __addon__.getSetting('label')
-        self.slideshow_exif = __addon__.getSetting('exif')
+        self.slideshow_date = __addon__.getSetting('date')
+        self.slideshow_iptc = __addon__.getSetting('iptc')
         if self.slideshow_name == '0':
             self.getControl(99).setVisible(False)
         else:
             self.namelabel = self.getControl(99)
-        if self.slideshow_exif == 'false':
-            self.getControl(100).setVisible(False)
-        else:
-            self.textbox = self.getControl(100)
+        self.datelabel = self.getControl(100)
+        self.textbox = self.getControl(101)
+            
         # set the dim property
         self._set_prop('Dim', self.slideshow_dim)
 
@@ -128,46 +128,58 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                     xbmc.sleep(1000)
                 else:
                     self.startup = False
-                # get exif tags if enabled in settings and we have an image that can contain exif data
+                # get exif and iptc tags if enabled in settings and we have an image that can contain this data
+                date = ''
+                title = ''
+                description = ''
+                keywords = ''
                 exif = False
-                if (self.slideshow_exif == 'true') and (os.path.splitext(img)[1].lower() in EXIF_TYPES):
-                     try:
-                         imgfile = xbmcvfs.File(img)
-                         # max exif size is 64k and is located at the beginning of the image
-                         imgdata = imgfile.read(70000)
-                         imgfile.close()
-                         # read tags
-                         metadata = pyexiv2.ImageMetadata.from_buffer(imgdata)
-                         metadata.read()
-                         try:
-                             date = metadata['Exif.Photo.DateTimeOriginal'].raw_value
-                             if date == '0000:00:00 00:00:00':
-                                 date = ''
-                             else:
-                                 exif = True
-                         except:
-                             date = ''
-                         try:
-                             title = metadata['Iptc.Application2.Headline'].raw_value[0]
-                             exif = True
-                         except:
-                             title = ''
-                         try:
-                             description = metadata['Iptc.Application2.Caption'].raw_value[0]
-                             exif = True
-                         except:
-                             description = ''
-                         try:
-                             keywords = ', '.join(metadata['Iptc.Application2.Keywords'].raw_value)
-                             exif = True
-                         except:
-                             keywords = ''
-                         if exif:
-                             self.textbox.setText('[B]' + localize(30017) + '[/B]' + date + '[CR]' + '[B]' + localize(30018) + '[/B]' + title + '[CR]' + '[B]' + localize(30019) + '[/B]' + description + '[CR]' + '[B]' + localize(30020) + '[/B]' + keywords)
-                             self.textbox.setVisible(True)
-                     except:
-                         pass
-                if not exif:
+                iptc = False
+                if ((self.slideshow_date == 'true') or (self.slideshow_iptc == 'true')) and (os.path.splitext(img)[1].lower() in EXIF_TYPES):
+                    try:
+                        imgfile = xbmcvfs.File(img)
+                        # max exif size is 64k and is located at the beginning of the image
+                        imgdata = imgfile.read(70000)
+                        imgfile.close()
+                        # read tags
+                        metadata = pyexiv2.ImageMetadata.from_buffer(imgdata)
+                        metadata.read()
+                        if self.slideshow_date == 'true':
+                            try:
+                                date = metadata['Exif.Photo.DateTimeOriginal'].raw_value.replace(' ','   ')
+                                if date == '0000:00:00   00:00:00':
+                                    date = ''
+                                else:
+                                    exif = True
+                            except:
+                                pass
+                        if self.slideshow_iptc == 'true':
+                            try:
+                                title = metadata['Iptc.Application2.Headline'].raw_value[0]
+                                iptc = True
+                            except:
+                                pass
+                            try:
+                                description = metadata['Iptc.Application2.Caption'].raw_value[0]
+                                iptc = True
+                            except:
+                                pass
+                            try:
+                                keywords = ', '.join(metadata['Iptc.Application2.Keywords'].raw_value)
+                                iptc = True
+                            except:
+                                pass
+                    except:
+                        pass
+                if exif:
+                    self.datelabel.setLabel('[I]' + date + '[/I]')
+                    self.datelabel.setVisible(True)
+                else:
+                    self.datelabel.setVisible(False)
+                if iptc:
+                    self.textbox.setText('[B]' + localize(30018) + '[/B]' + title + '[CR]' + '[B]' + localize(30019) + '[/B]' + description + '[CR]' + '[B]' + localize(30020) + '[/B]' + keywords)
+                    self.textbox.setVisible(True)
+                else:
                     self.textbox.setVisible(False)
                 # get the file or foldername if enabled in settings
                 if self.slideshow_name != '0':

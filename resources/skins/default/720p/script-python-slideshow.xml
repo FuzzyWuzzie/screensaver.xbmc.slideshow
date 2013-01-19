@@ -86,24 +86,31 @@
 			</control>
 			<control type="label" id="99">
 				<posx>1250</posx>
-				<posy>680</posy>
-				<width>1200</width>
+				<posy>640</posy>
+				<width>400</width>
 				<height>20</height>
-				<font>font13</font>
+				<font>font16</font>
 				<align>right</align>
 				<textcolor>F0FFFFFF</textcolor>
 				<shadowcolor>F0000000</shadowcolor>
-				<animation type="Conditional" condition="Control.IsVisible(100)" reversible="false">
-					<effect type="slide" start="0,0" end="0,-95" time="0"/>
-				</animation>
 			</control>
-			<control type="textbox" id="100">
-				<posx>50</posx>
-				<posy>610</posy>
-				<width>1200</width>
-				<height>100</height>
-				<font>font13</font>
+			<control type="label" id="100">
+				<posx>1250</posx>
+				<posy>680</posy>
+				<width>400</width>
+				<height>20</height>
+				<font>font12</font>
 				<align>right</align>
+				<textcolor>C0FFFFFF</textcolor>
+				<shadowcolor>F0000000</shadowcolor>
+			</control>
+			<control type="textbox" id="101">
+				<posx>30</posx>
+				<posy>635</posy>
+				<width>800</width>
+				<height>80</height>
+				<font>font12</font>
+				<align>left</align>
 				<textcolor>C0FFFFFF</textcolor>
 				<shadowcolor>C0000000</shadowcolor>
 			</control>

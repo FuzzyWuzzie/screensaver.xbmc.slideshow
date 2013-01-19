@@ -1,3 +1,6 @@
+v0.0.7
+- update language files
+
 v0.0.6
 - use largeimage controls in skin
 - add support for exif tags
