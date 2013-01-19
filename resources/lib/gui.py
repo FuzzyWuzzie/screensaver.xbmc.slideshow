@@ -13,8 +13,10 @@
 # *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 # *  http://www.gnu.org/copyleft/gpl.html
 
-import os, sys, random, urllib, pyexiv2
+import os, sys, random, urllib
 import xbmc, xbmcgui, xbmcaddon, xbmcvfs
+import EXIF
+from iptcinfo import IPTCInfo
 from xml.dom.minidom import parse
 if sys.version_info < (2, 7):
     import simplejson
@@ -136,41 +138,34 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                 exif = False
                 iptc = False
                 if ((self.slideshow_date == 'true') or (self.slideshow_iptc == 'true')) and (os.path.splitext(img)[1].lower() in EXIF_TYPES):
-                    try:
-                        imgfile = xbmcvfs.File(img)
-                        # max exif size is 64k and is located at the beginning of the image
-                        imgdata = imgfile.read(70000)
-                        imgfile.close()
-                        # read tags
-                        metadata = pyexiv2.ImageMetadata.from_buffer(imgdata)
-                        metadata.read()
-                        if self.slideshow_date == 'true':
-                            try:
-                                date = metadata['Exif.Photo.DateTimeOriginal'].raw_value.replace(' ','   ')
+                    imgfile = xbmcvfs.File(img)
+                    if self.slideshow_date == 'true':
+                        try:
+                            exiftags = EXIF.process_file(imgfile, details=False, stop_tag="DateTimeOriginal")
+                            if exiftags.has_key('EXIF DateTimeOriginal'):
+                                date = str(exiftags['EXIF DateTimeOriginal']).replace(' ', '   ').decode('utf-8')
                                 if date == '0000:00:00   00:00:00':
                                     date = ''
                                 else:
                                     exif = True
-                            except:
-                                pass
-                        if self.slideshow_iptc == 'true':
-                            try:
-                                title = metadata['Iptc.Application2.Headline'].raw_value[0]
+                        except:
+                            pass
+                    if self.slideshow_iptc == 'true':
+                        try:
+                            iptc = IPTCInfo(imgfile)
+                            iptctags = iptc.data
+                            if iptctags.has_key(105):
+                                title = iptctags[105].decode('utf-8')
                                 iptc = True
-                            except:
-                                pass
-                            try:
-                                description = metadata['Iptc.Application2.Caption'].raw_value[0]
+                            if iptctags.has_key(120):
+                                description = iptctags[120].decode('utf-8')
                                 iptc = True
-                            except:
-                                pass
-                            try:
-                                keywords = ', '.join(metadata['Iptc.Application2.Keywords'].raw_value)
+                            if iptctags.has_key(120):
+                                keywords = ', '.join(iptctags[25]).decode('utf-8')
                                 iptc = True
-                            except:
-                                pass
-                    except:
-                        pass
+                        except:
+                            pass
+                    imgfile.close()
                 if exif:
                     self.datelabel.setLabel('[I]' + date + '[/I]')
                     self.datelabel.setVisible(True)
