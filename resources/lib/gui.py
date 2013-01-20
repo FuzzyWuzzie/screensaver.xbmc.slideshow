@@ -139,6 +139,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                 iptc = False
                 if ((self.slideshow_date == 'true') or (self.slideshow_iptc == 'true')) and (os.path.splitext(img)[1].lower() in EXIF_TYPES):
                     imgfile = xbmcvfs.File(img)
+                    # get exif date
                     if self.slideshow_date == 'true':
                         try:
                             exiftags = EXIF.process_file(imgfile, details=False, stop_tag="DateTimeOriginal")
@@ -150,6 +151,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                                     exif = True
                         except:
                             pass
+                    # get iptc title, description and keywords
                     if self.slideshow_iptc == 'true':
                         try:
                             iptc = IPTCInfo(imgfile)
@@ -160,17 +162,19 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                             if iptctags.has_key(120):
                                 description = iptctags[120].decode('utf-8')
                                 iptc = True
-                            if iptctags.has_key(120):
+                            if iptctags.has_key(25):
                                 keywords = ', '.join(iptctags[25]).decode('utf-8')
                                 iptc = True
                         except:
                             pass
                     imgfile.close()
+                # display exif date if we have one
                 if exif:
                     self.datelabel.setLabel('[I]' + date + '[/I]')
                     self.datelabel.setVisible(True)
                 else:
                     self.datelabel.setVisible(False)
+                # display iptc data if we have any
                 if iptc:
                     self.textbox.setText('[B]' + localize(30018) + '[/B]' + title + '[CR]' + '[B]' + localize(30019) + '[/B]' + description + '[CR]' + '[B]' + localize(30020) + '[/B]' + keywords)
                     self.textbox.setVisible(True)
