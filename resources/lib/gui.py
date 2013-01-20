@@ -30,9 +30,13 @@ __skindir__  = xbmc.getSkinDir().decode('utf-8')
 __skinhome__ = xbmc.translatePath( os.path.join( 'special://home/addons/', __skindir__, 'addon.xml' ).encode('utf-8') ).decode('utf-8')
 __skinxbmc__ = xbmc.translatePath( os.path.join( 'special://xbmc/addons/', __skindir__, 'addon.xml' ).encode('utf-8') ).decode('utf-8')
 
+# supported image types by the screensaver
 IMAGE_TYPES = ('.jpg', '.jpeg', '.png', '.tif', '.tiff', '.gif', '.pcx', '.bmp', '.tga', '.ico')
+
+# images types that can contain exif/iptc data
 EXIF_TYPES  = ('.jpg', '.jpeg', '.tif', '.tiff')
 
+# random effect list to choose from
 EFFECTLIST = ["('effect=zoom start=100 end=400 center=auto time=%i condition=true', 'conditional'),",
              "('effect=slide start=1280,0 end=-1280,0 time=%i condition=true', 'conditional'), ('effect=zoom start=%i end=%i center=auto time=%i condition=true', 'conditional')",
              "('effect=slide start=-1280,0 end=1280,0 time=%i condition=true', 'conditional'), ('effect=zoom start=%i end=%i center=auto time=%i condition=true', 'conditional')",
@@ -50,6 +54,7 @@ def log(txt):
     xbmc.log(msg=message.encode('utf-8'), level=xbmc.LOGDEBUG)
 
 def localize(num):
+    # convert all strings to unicode to avoid en/decoding issues
     return __addon__.getLocalizedString(num).encode('utf-8')
 
 class Screensaver(xbmcgui.WindowXMLDialog):
@@ -78,12 +83,15 @@ class Screensaver(xbmcgui.WindowXMLDialog):
             self._start_show(items)
 
     def _get_vars(self):
+        # get the screensaver window id
         self.winid   = xbmcgui.Window(xbmcgui.getCurrentWindowDialogId())
+        # init the monitor class to catch onscreensaverdeactivated calls
         self.Monitor = MyMonitor(action = self._exit)
         self.stop    = False
         self.startup = True
 
     def _get_settings(self):
+        # read addon settings
         self.slideshow_type   = __addon__.getSetting('type')
         self.slideshow_path   = __addon__.getSetting('path')
         self.slideshow_effect = __addon__.getSetting('effect')
@@ -111,7 +119,6 @@ class Screensaver(xbmcgui.WindowXMLDialog):
             self.namelabel = self.getControl(99)
         self.datelabel = self.getControl(100)
         self.textbox = self.getControl(101)
-            
         # set the dim property
         self._set_prop('Dim', self.slideshow_dim)
 
