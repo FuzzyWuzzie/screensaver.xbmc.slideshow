@@ -47,15 +47,14 @@ EFFECTLIST = ["('effect=zoom start=100 end=400 center=auto time=%i condition=tru
              "('effect=slide start=1280,-720 end=-1280,720 time=%i condition=true', 'conditional'), ('effect=zoom start=%i end=%i center=auto time=%i condition=true', 'conditional')",
              "('effect=slide start=-1280,-720 end=1280,720 time=%i condition=true', 'conditional'), ('effect=zoom start=%i end=%i center=auto time=%i condition=true', 'conditional')"]
 
+# get local dateformat to localize the exif date tag
+DATEFORMAT = xbmc.getRegion('dateshort')
+
 def log(txt):
     if isinstance (txt,str):
         txt = txt.decode('utf-8')
     message = u'%s: %s' % (__addonid__, txt)
     xbmc.log(msg=message.encode('utf-8'), level=xbmc.LOGDEBUG)
-
-def localize(num):
-    # convert all strings to unicode to avoid en/decoding issues
-    return __addon__.getLocalizedString(num).encode('utf-8')
 
 class Screensaver(xbmcgui.WindowXMLDialog):
     def __init__( self, *args, **kwargs ):
@@ -99,6 +98,10 @@ class Screensaver(xbmcgui.WindowXMLDialog):
         # convert float to hex value usable by the skin
         self.slideshow_dim    = hex(int('%.0f' % (float(__addon__.getSetting('level')) * 2.55)))[2:] + 'ffffff'
         self.slideshow_scale  = __addon__.getSetting('scale')
+        self.slideshow_name   = __addon__.getSetting('label')
+        self.slideshow_date   = __addon__.getSetting('date')
+        self.slideshow_iptc   = __addon__.getSetting('iptc')
+        self.slideshow_music   = __addon__.getSetting('music')
         # select which image controls from the xml we are going to use
         if self.slideshow_scale == 'false':
             self.image1 = self.getControl(1)
@@ -110,9 +113,6 @@ class Screensaver(xbmcgui.WindowXMLDialog):
             self.image2 = self.getControl(4)
             self.getControl(1).setVisible(False)
             self.getControl(2).setVisible(False)
-        self.slideshow_name = __addon__.getSetting('label')
-        self.slideshow_date = __addon__.getSetting('date')
-        self.slideshow_iptc = __addon__.getSetting('iptc')
         if self.slideshow_name == '0':
             self.getControl(99).setVisible(False)
         else:
@@ -121,6 +121,9 @@ class Screensaver(xbmcgui.WindowXMLDialog):
         self.textbox = self.getControl(101)
         # set the dim property
         self._set_prop('Dim', self.slideshow_dim)
+        # show music info during slideshow if enabled
+        if self.slideshow_music == 'true':
+            self._set_prop('Music', 'show')
 
     def _start_show(self, items):
         # start with image 1
@@ -138,7 +141,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                 else:
                     self.startup = False
                 # get exif and iptc tags if enabled in settings and we have an image that can contain this data
-                date = ''
+                datetime = ''
                 title = ''
                 description = ''
                 keywords = ''
@@ -151,10 +154,21 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                         try:
                             exiftags = EXIF.process_file(imgfile, details=False, stop_tag="DateTimeOriginal")
                             if exiftags.has_key('EXIF DateTimeOriginal'):
-                                date = str(exiftags['EXIF DateTimeOriginal']).replace(' ', '   ').decode('utf-8')
-                                if date == '0000:00:00   00:00:00':
-                                    date = ''
+                                datetime = str(exiftags['EXIF DateTimeOriginal']).decode('utf-8')
+                                # sometimes exif date returns useless data, probably no date set on camera
+                                if datetime == '0000:00:00 00:00:00':
+                                    datetime = ''
                                 else:
+                                    try:
+                                        # localize the date format
+                                        date = datetime[:10].split(':')
+                                        time = datetime[10:]
+                                        if DATEFORMAT[1] == 'm':
+                                            datetime = date[1] + '-' + date[2] + '-' + date[0] + '  ' + time
+                                        else:
+                                            datetime = date[2] + '-' + date[1] + '-' + date[0] + '  ' + time
+                                    except:
+                                        pass
                                     exif = True
                         except:
                             pass
@@ -177,13 +191,13 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                     imgfile.close()
                 # display exif date if we have one
                 if exif:
-                    self.datelabel.setLabel('[I]' + date + '[/I]')
+                    self.datelabel.setLabel('[I]' + datetime + '[/I]')
                     self.datelabel.setVisible(True)
                 else:
                     self.datelabel.setVisible(False)
                 # display iptc data if we have any
                 if iptc:
-                    self.textbox.setText('[B]' + localize(30018) + '[/B]' + title + '[CR]' + '[B]' + localize(30019) + '[/B]' + description + '[CR]' + '[B]' + localize(30020) + '[/B]' + keywords)
+                    self.textbox.setText(title + '[CR]' + description + '[CR]' + keywords)
                     self.textbox.setVisible(True)
                 else:
                     self.textbox.setVisible(False)
@@ -341,6 +355,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
         self._clear_prop('Fade1')
         self._clear_prop('Fade2')
         self._clear_prop('Dim')
+        self._clear_prop('Music')
         self._clear_prop('Splash')
         self.close()
 

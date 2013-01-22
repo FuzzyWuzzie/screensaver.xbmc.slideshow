@@ -81,19 +81,7 @@ msgctxt "#30015"
 msgid "Use foldername"
 msgstr ""
 
-#empty strings from id 30016 to 30017
-
-msgctxt "#30018"
-msgid "Title: "
-msgstr ""
-
-msgctxt "#30019"
-msgid "Description: "
-msgstr ""
-
-msgctxt "#30020"
-msgid "Keywords: "
-msgstr ""
+#empty strings from id 30016 to 30020
 
 msgctxt "#30021"
 msgid "Display picture date"
@@ -101,4 +89,16 @@ msgstr ""
 
 msgctxt "#30022"
 msgid "Display additional picture tags"
+msgstr ""
+
+msgctxt "#30023"
+msgid "Display music info during audio playback"
+msgstr ""
+
+msgctxt "#30024"
+msgid "Basic"
+msgstr ""
+
+msgctxt "#30025"
+msgid "Additional"
 msgstr ""
