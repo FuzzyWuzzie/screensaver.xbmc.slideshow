@@ -15,8 +15,8 @@
 
 import os, sys, random, urllib
 import xbmc, xbmcgui, xbmcaddon, xbmcvfs
-import EXIF
-from iptcinfo import IPTCInfo
+import EXIFvfs
+from iptcinfovfs import IPTCInfo
 from xml.dom.minidom import parse
 if sys.version_info < (2, 7):
     import simplejson
@@ -152,7 +152,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                     # get exif date
                     if self.slideshow_date == 'true':
                         try:
-                            exiftags = EXIF.process_file(imgfile, details=False, stop_tag="DateTimeOriginal")
+                            exiftags = EXIFvfs.process_file(imgfile, details=False, stop_tag="DateTimeOriginal")
                             if exiftags.has_key('EXIF DateTimeOriginal'):
                                 datetime = str(exiftags['EXIF DateTimeOriginal']).decode('utf-8')
                                 # sometimes exif date returns useless data, probably no date set on camera
