@@ -108,6 +108,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
         self.slideshow_time   = int(__addon__.getSetting('time'))
         # convert float to hex value usable by the skin
         self.slideshow_dim    = hex(int('%.0f' % (float(__addon__.getSetting('level')) * 2.55)))[2:] + 'ffffff'
+        self.slideshow_random = __addon__.getSetting('random')
         self.slideshow_scale  = __addon__.getSetting('scale')
         self.slideshow_name   = __addon__.getSetting('label')
         self.slideshow_date   = __addon__.getSetting('date')
@@ -273,7 +274,8 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                         if item['fanart']:
                             items.append(item['fanart'])
         # randomize
-        random.shuffle(items, random.random)
+        if self.slideshow_random == 'true':
+            random.shuffle(items, random.random)
         return items
 
     def _walk(self, path):

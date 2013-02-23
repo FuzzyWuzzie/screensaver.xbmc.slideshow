@@ -1,3 +1,6 @@
+v0.1.0
+- added option to disable the randomizing of images
+
 v0.0.9
 - silence iptc warnings
 - update code for xbmc 12.1

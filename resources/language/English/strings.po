@@ -80,7 +80,9 @@ msgctxt "#30015"
 msgid "Use foldername"
 msgstr ""
 
-#empty strings from id 30016 to 30020
+msgctxt "#30016"
+msgid "Display images in random order"
+msgstr ""
 
 msgctxt "#30021"
 msgid "Display picture date"
