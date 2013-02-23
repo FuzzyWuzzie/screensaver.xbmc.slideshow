@@ -146,7 +146,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
             # iterate through all the images
             for img in items:
                 # add image to gui
-                cur_img.setImage(img)
+                cur_img.setImage(img[0])
                 # give xbmc some time to load the image
                 if not self.startup:
                     xbmc.sleep(1000)
@@ -159,8 +159,8 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                 keywords = ''
                 exif = False
                 iptc = False
-                if ((self.slideshow_date == 'true') or (self.slideshow_iptc == 'true')) and (os.path.splitext(img)[1].lower() in EXIF_TYPES):
-                    imgfile = xbmcvfs.File(img)
+                if ((self.slideshow_date == 'true') or (self.slideshow_iptc == 'true')) and (os.path.splitext(img[0])[1].lower() in EXIF_TYPES):
+                    imgfile = xbmcvfs.File(img[0])
                     # get exif date
                     if self.slideshow_date == 'true':
                         try:
@@ -216,9 +216,12 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                 # get the file or foldername if enabled in settings
                 if self.slideshow_name != '0':
                     if self.slideshow_name == '1':
-                        NAME, EXT = os.path.splitext(os.path.basename(img))
+                        if self.slideshow_type == "2":
+                            NAME, EXT = os.path.splitext(os.path.basename(img[0]))
+                        else:
+                            NAME = img[1]
                     elif self.slideshow_name == '2':
-                        ROOT, NAME = os.path.split(os.path.dirname(img))
+                        ROOT, NAME = os.path.split(os.path.dirname(img[0]))
                     self.namelabel.setLabel('[B]' + NAME + '[/B]')
                 # set animations
                 if self.slideshow_effect == "0":
@@ -272,7 +275,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                 if json_response.has_key('result') and json_response['result'] != None and json_response['result'].has_key(method[1]):
                     for item in json_response['result'][method[1]]:
                         if item['fanart']:
-                            items.append(item['fanart'])
+                            items.append([item['fanart'], item['label']])
         # randomize
         if self.slideshow_random == 'true':
             random.shuffle(items, random.random)
@@ -296,7 +299,7 @@ class Screensaver(xbmcgui.WindowXMLDialog):
                 for item in files:
                     # filter out all images
                     if os.path.splitext(item)[1].lower() in IMAGE_TYPES:
-                        images.append(os.path.join(folder,item))
+                        images.append([os.path.join(folder,item), ''])
                 for item in dirs:
                     # recursively scan all subfolders
                     images += self._walk(os.path.join(folder,item))
