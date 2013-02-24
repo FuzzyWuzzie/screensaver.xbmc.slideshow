@@ -1,6 +1,7 @@
 v0.1.0
 - added option to disable the randomizing of images
 - added display name for fanart
+- added cache option
 
 v0.0.9
 - silence iptc warnings
