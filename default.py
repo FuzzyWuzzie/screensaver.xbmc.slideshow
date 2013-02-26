@@ -1,4 +1,4 @@
-import os
+import os, sys
 import xbmc, xbmcaddon
 
 __addon__    = xbmcaddon.Addon()

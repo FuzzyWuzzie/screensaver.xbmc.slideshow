@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, urllib
 import xbmc, xbmcvfs
 
 __addonid__ = sys.modules[ "__main__" ].__addonid__
